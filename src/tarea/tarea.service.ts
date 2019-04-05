@@ -28,12 +28,19 @@ export class TareaService {
     }
 
     createTask(task: any) {
-        return this.db.query(`INSERT INTO tarea (asunto, descripcion, estado) VALUES ('${task.subject}', '${task.description}',${task.state})`)
+        return this.db.query(`
+        INSERT INTO tarea 
+        (asunto, descripcion, estado,fk_persona) 
+        VALUES 
+        ('${task.subject}', '${task.description}',${task.state}, 
+        (SELECT id FROM persona where cedula = '${task.nombre}' ))`)
             .then(async (data: any) => {
                 let id: any = await this.db.query(`SELECT currval(pg_get_serial_sequence('tarea','id')) as id`);
                 return  { state: "OK", payload: id.rows[0].id };
             })
             .catch(err => {
+                console.log("error: "+err);
+                
                 if (err.code == "42601") return { state: "ERROR", type: "ERROR_SERVER", description: "Error en el servidor" };
             });
     }
